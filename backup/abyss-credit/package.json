@@ -1,0 +1,16 @@
+{
+	"name": "abyss-credit",
+	"version": "1.0.0",
+	"dependencies": {
+		"discord.js": "14.14.1",
+		"@sapphire/framework": "5.0.10",
+		"@sapphire/time-utilities": "1.7.12",
+		"google-spreadsheet": "4.1.1",
+		"google-auth-library": "9.7.0"
+	},
+	"devDependencies": {
+		"typescript": "5.4.4",
+		"@types/node": "20.12.4",
+		"@types/google-spreadsheet": "4.0.0"
+	}
+}

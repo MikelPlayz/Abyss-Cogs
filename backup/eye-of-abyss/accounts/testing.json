@@ -1,0 +1,70 @@
+{
+	"discord": {
+		"token": "OTEyNTgwOTIxMDI5NDQ3NzQw.G556xv.8WuYQ9KGRZiD0CLg39qkAJxdFEzgJ8333fCKMY",
+		"chatChannelID": "1117555753490853938",
+		"infoChannelID": "1203106273776771122"
+	},
+	"credentials": {
+		"email": "nienabjs@gmail.com",
+		"username": "xAfflict",
+		"auth": "microsoft"
+	},
+	"server": {
+		"host": "localhost",
+		"port": "25565",
+		"version": "1.18.2"
+	},
+	"logging": {
+		"enable": false,
+		"path": ""
+	},
+	"filter": {
+		"enable": false,
+		"list": []
+	},
+	"actions": {
+		"left": 0,
+		"right": 0,
+		"forward": 0,
+		"back": 0,
+		"jump": 0,
+		"sprint": 0,
+		"sneak": 0
+	},
+	"events": {
+		"connect": {
+			"enable": true,
+			"messages": [],
+			"actions": [
+				{
+					"type": "jump",
+					"delay": 30000
+				}
+			]
+		}
+	},
+	"autoreconnect": {
+		"enable": true,
+		"interval": 60000
+	},
+	"plugins": [
+		"back",
+		"baltop",
+		"delhome",
+		"home",
+		"invite",
+		"kit",
+		"message",
+		"money",
+		"pay",
+		"pw",
+		"sethome",
+		"tpaccept",
+		"tpa",
+		"tpdeny",
+		"tpahere",
+		"trust",
+		"warp"
+	],
+	"advertisements": []
+}

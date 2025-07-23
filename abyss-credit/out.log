@@ -1,0 +1,28 @@
+nohup: ignoring input
+[INFO] ApplicationCommandRegistries: Initializing...
+[DEBUG] ApplicationCommandRegistry[remove] Preparing to process 1 possible command registrations / updates...
+[DEBUG] ApplicationCommandRegistry[remove] Checking if command "remove" is identical with global chat input command with id "1360431888455438336"
+[DEBUG] ApplicationCommandRegistry[remove] Registering id "1360431888455438336" to internal chat input map
+[DEBUG] ApplicationCommandRegistry[remove] Took 1ms to process differences via fast compute differences
+[DEBUG] ApplicationCommandRegistry[remove] Command "remove" is identical to command "remove" (1360431888455438336)
+[DEBUG] ApplicationCommandRegistry[level] Preparing to process 1 possible command registrations / updates...
+[DEBUG] ApplicationCommandRegistry[level] Checking if command "level" is identical with global chat input command with id "1360431890342871262"
+[DEBUG] ApplicationCommandRegistry[level] Registering id "1360431890342871262" to internal chat input map
+[DEBUG] ApplicationCommandRegistry[level] Took 0ms to process differences via fast compute differences
+[DEBUG] ApplicationCommandRegistry[level] Command "level" is identical to command "level" (1360431890342871262)
+[DEBUG] ApplicationCommandRegistry[balance] Preparing to process 1 possible command registrations / updates...
+[DEBUG] ApplicationCommandRegistry[balance] Checking if command "balance" is identical with global chat input command with id "1360431891257233538"
+[DEBUG] ApplicationCommandRegistry[balance] Registering id "1360431891257233538" to internal chat input map
+[DEBUG] ApplicationCommandRegistry[balance] Took 0ms to process differences via fast compute differences
+[DEBUG] ApplicationCommandRegistry[balance] Command "balance" is identical to command "balance" (1360431891257233538)
+[DEBUG] ApplicationCommandRegistry[daily] Preparing to process 1 possible command registrations / updates...
+[DEBUG] ApplicationCommandRegistry[daily] Checking if command "daily" is identical with global chat input command with id "1360431893224624299"
+[DEBUG] ApplicationCommandRegistry[daily] Registering id "1360431893224624299" to internal chat input map
+[DEBUG] ApplicationCommandRegistry[daily] Took 0ms to process differences via fast compute differences
+[DEBUG] ApplicationCommandRegistry[daily] Command "daily" is identical to command "daily" (1360431893224624299)
+[DEBUG] ApplicationCommandRegistry[add] Preparing to process 1 possible command registrations / updates...
+[DEBUG] ApplicationCommandRegistry[add] Checking if command "add" is identical with global chat input command with id "1360431895023849612"
+[DEBUG] ApplicationCommandRegistry[add] Registering id "1360431895023849612" to internal chat input map
+[DEBUG] ApplicationCommandRegistry[add] Took 0ms to process differences via fast compute differences
+[DEBUG] ApplicationCommandRegistry[add] Command "add" is identical to command "add" (1360431895023849612)
+[INFO] ApplicationCommandRegistries: Took 5ms to initialize.

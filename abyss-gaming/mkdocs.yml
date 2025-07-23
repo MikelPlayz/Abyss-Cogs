@@ -1,0 +1,57 @@
+site_name: Abyss Gaming
+site_description: The offical Abyss Gaming website!
+site_author: xAfflict
+site_url: https://abyssgaming.io
+
+nav:
+- Home: index.md
+- Guides:
+  - staff_structure.md
+theme:
+  name: material
+  features:
+  - navigation.instant
+  - navigation.tracking
+  - navigation.tabs
+  - navigation.tabs.sticky
+  - navigation.sections
+  - navigation.expand
+  - navigation.top
+  - toc.follow
+  - toc.integrate
+  - search.suggest
+  - search.highlight
+  - search.share
+  palette:
+  - scheme: slate
+    toggle:
+      icon: material/lightbulb-outline
+      name: Switch to dark mode
+    primary: indigo
+    accent: indigo
+  - scheme: default
+    toggle:
+      icon: material/lightbulb
+      name: Switch to light mode
+    primary: indigo
+    accent: indigo
+  icon:
+    admonition:
+      note: material/note
+plugins:
+- search
+markdown_extensions:
+- attr_list
+- abbr
+- admonition
+- pymdownx.details
+- pymdownx.superfences
+- pymdownx.critic
+- pymdownx.caret
+- pymdownx.keys
+- pymdownx.mark
+- pymdownx.tilde
+- pymdownx.snippets
+- pymdownx.emoji:
+    emoji_index: !!python/name:materialx.emoji.twemoji
+    emoji_generator: !!python/name:materialx.emoji.to_svg

@@ -1,0 +1,1 @@
+systemctl restart eye-of-abyss-$1.service
