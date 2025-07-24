@@ -7,13 +7,15 @@
   "messages": [
     {
       "time": "12:00",
-      "message": "Hey, DUMBASS! did you forget something? <@915678948120231957>",
-
-      "time": "1:00",
-      "message": "Shun's Pots need watering! <@1359912944670085291>",
-
+      "message": "Hey, DUMBASS! did you forget something? <@915678948120231957>"
+    }
+    {
       "time": "11:00",
-      "message": "Shun's Pots need watering! <@1359912944670085291>"
+      "message": "Shun's Pots need to be watered! <@1359912944670085291>"
+    }
+    {
+      "time": "1:00",
+      "message": "Shun's Pots need to be watered! <@1359912944670085291>"
     }
   ]
 }
