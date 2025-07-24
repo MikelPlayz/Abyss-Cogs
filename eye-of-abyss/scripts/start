@@ -1,0 +1,15 @@
+#!/bin/bash
+
+echo "🔄 Restarting: eye-of-abyss-kwishee.service"
+sudo systemctl restart eye-of-abyss-kwishee.service
+
+sleep 1
+echo ""
+echo "📺 Tailing logs for eye-of-abyss-kwishee.service (Ctrl+C to exit)"
+sleep 1
+journalctl -fu eye-of-abyss-kwishee.service
+
+
+# cd ~/eye-of-abyss
+# sudo bash scripts/start
+# sudo bash scripts/start_all

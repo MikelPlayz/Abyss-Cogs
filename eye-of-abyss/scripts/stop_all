@@ -1,0 +1,14 @@
+#!/bin/bash
+
+declare -a accounts=("abyss_alt1" "abyss_alt2" "abyss_alt3" "abyss_alt4" "shunsy" 
+#"barth" "hybrol" "theorangejuice" 
+#"rafiman" "shunsy" "xafflict" "cashmaster" "kwishee" 
+#"sassydoll" "kingeazy87" "pizzaking106" "icedcoffeelol")
+
+for i in "${accounts[@]}"
+do
+    systemctl stop eye-of-abyss-$i.service
+    sleep 2
+done
+
+# sudo bash scripts/stop_all
