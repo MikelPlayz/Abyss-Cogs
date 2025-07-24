@@ -1,1 +1,0 @@
-systemctl stop eye-of-abyss-$1.service
