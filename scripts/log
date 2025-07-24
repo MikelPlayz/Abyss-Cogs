@@ -1,0 +1,1 @@
+sudo journalctl -u eye-of-abyss-$1.service --no-pager

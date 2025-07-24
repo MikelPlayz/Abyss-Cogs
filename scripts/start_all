@@ -1,0 +1,35 @@
+#declare -a accounts=("abyss_alt1" "abyss_alt2" "abyss_alt3" "abyss_alt4")
+#
+#for i in "${accounts[@]}"
+#do
+#	systemctl restart eye-of-abyss-$i.service
+#	sleep 3
+#done
+
+
+#!/bin/bash
+
+# List of alt account names (match your .service files)
+declare -a accounts=(
+  "abyss_alt1" "abyss_alt2" "abyss_alt3" "abyss_alt4" "abyss_alt5" "shunsy" "sassydoll" "kwishee" "barth" "carloyan" "pizzaking106" "pr0k1d11" "cash_master" "king_eazy87" "lazy07" "cracked"
+  # "_theorangejuice_" "rafiman" "hybrol" 
+  #"icedcoffeelol" 
+)
+
+
+# Restart each service
+for i in "${accounts[@]}"
+do
+  echo "🔄 Restarting: eye-of-abyss-$i.service"
+  sudo systemctl restart eye-of-abyss-$i.service
+  sleep 3
+done
+
+echo ""
+echo "📺 Starting live logs for all services..."
+sleep 2
+
+# Follow all logs
+journalctl -fu 'eye-of-abyss-*'
+
+# cd ~/eye-of-abyss
