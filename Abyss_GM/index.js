@@ -93,7 +93,7 @@ client.on('guildMemberAdd', async member => {
   if (channels.join) channels.join.send({ embeds: [embed] });
 });
 
-// 📤 Member left (with kick check)
+// 📤 Member left (with kick check) (Trying to make better)
 client.on('guildMemberRemove', async member => {
   const leaveTime = moment().tz(config.timezone).format('YYYY-MM-DD HH:mm:ss z');
   const joinTime = moment(member.joinedAt).tz(config.timezone).format('YYYY-MM-DD HH:mm:ss z');
