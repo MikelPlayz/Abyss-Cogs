@@ -21,7 +21,7 @@ const channels = {
 };
 
 client.once('ready', async () => {
-  console.log(`✅ Logged in as ${client.user.tag} Created by Mikel_Playz!`);
+  console.log(`✅ Logged in as ${client.user.tag} Created by MikelPlayz/makattac`);
 
   try {
     // Fetch channels
