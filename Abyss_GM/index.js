@@ -59,8 +59,20 @@ client.once('ready', async () => {
 });
 
 // 📥 Member joined
-client.on('guildMemberAdd', member => {
+client.on('guildMemberAdd', async member => {
   const joinTime = moment().tz(config.timezone).format('YYYY-MM-DD HH:mm:ss z');
+  const createdAt = member.user.createdAt;
+  let possibleAlt = false;
+
+  // Check for other accounts created within 5 minutes
+  const closeAccounts = member.guild.members.cache.filter(m =>
+    m.id !== member.id &&
+    Math.abs(m.user.createdTimestamp - member.user.createdTimestamp) < 5 * 60 * 1000
+  );
+
+  if (closeAccounts.size > 0) {
+    possibleAlt = true;
+  }
 
   const embed = new EmbedBuilder()
     .setTitle("📥 Member Joined")
@@ -68,14 +80,17 @@ client.on('guildMemberAdd', member => {
     .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
     .addFields(
       { name: "User", value: `${member.user.tag} (<@${member.id}>)`, inline: false },
-      { name: "Joined At", value: joinTime, inline: true }
+      { name: "Joined At", value: joinTime, inline: true },
+      { name: "Account Created", value: moment(createdAt).tz(config.timezone).format('YYYY-MM-DD HH:mm:ss z'), inline: true }
     )
     .setFooter({ text: `User ID: ${member.id}` })
     .setTimestamp();
 
-  if (channels.join) {
-    channels.join.send({ embeds: [embed] });
+  if (possibleAlt) {
+    embed.addFields({ name: "⚠️ Possible Alt Detected", value: `Account creation time is similar to other member(s). Investigate manually.` });
   }
+
+  if (channels.join) channels.join.send({ embeds: [embed] });
 });
 
 // 📤 Member left (with kick check)
