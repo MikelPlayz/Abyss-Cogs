@@ -52,7 +52,7 @@
 		}
 	},
 	"autoreconnect": {
-		"enable": false,
+		"enable": true,
 		"interval": 600000,
 		"maxAttempts": 10,
 		"resetAfterSuccess": true

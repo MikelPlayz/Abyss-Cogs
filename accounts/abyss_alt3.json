@@ -20,7 +20,8 @@
 	"filter": {
 		"enable": true,
 		"list": [
-			"R27_"
+			"R27_",
+			"PlayFuse"
 		]
 	},
 	"actions": {

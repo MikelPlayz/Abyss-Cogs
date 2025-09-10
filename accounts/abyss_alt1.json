@@ -20,9 +20,7 @@
 	"filter": {
 		"enable": true,
 		"list": [
-			"ShunSY",
-			"Guild Chat",
-			"wings"
+			"PlayFuse"
 		]
 	},
 	"actions": {
