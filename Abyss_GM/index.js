@@ -96,27 +96,29 @@ client.on('guildMemberAdd', async member => {
 // 📤 Member left (with kick check) (Trying to make better)
 client.on('guildMemberRemove', async member => {
   const leaveTime = moment().tz(config.timezone).format('YYYY-MM-DD HH:mm:ss z');
-  const joinTime = moment(member.joinedAt).tz(config.timezone).format('YYYY-MM-DD HH:mm:ss z');
-
-  let reasonText = "🚪 Left voluntarily";
+  let leaveReason = "Voluntary leave";
 
   try {
-    const logs = await member.guild.fetchAuditLogs({
-      limit: 5,
-      type: AuditLogEvent.MemberKick
+    const fetchedLogs = await member.guild.fetchAuditLogs({
+      limit: 1,
+      type: Discord.AuditLogEvent.MemberBanAdd
     });
+    const banLog = fetchedLogs.entries.first();
 
-    const kickLog = logs.entries.find(entry =>
-      entry.target?.id === member.id &&
-      Date.now() - entry.createdTimestamp < 5000
-    );
-
-    if (kickLog) {
-      const { executor, reason } = kickLog;
-      reasonText = `❌ Kicked by **${executor.tag}**${reason ? ` — ${reason}` : ''}`;
+    if (banLog && banLog.target.id === member.id && (Date.now() - banLog.createdTimestamp) < 5000) {
+      leaveReason = `🚫 Banned by ${banLog.executor.tag}`;
+    } else {
+      const kickLogs = await member.guild.fetchAuditLogs({
+        limit: 1,
+        type: Discord.AuditLogEvent.MemberKick
+      });
+      const kickLog = kickLogs.entries.first();
+      if (kickLog && kickLog.target.id === member.id && (Date.now() - kickLog.createdTimestamp) < 5000) {
+        leaveReason = `🔨 Kicked by ${kickLog.executor.tag}`;
+      }
     }
   } catch (err) {
-    console.error("Audit log fetch error:", err);
+    console.error("Error fetching audit logs:", err);
   }
 
   const embed = new EmbedBuilder()
@@ -125,16 +127,13 @@ client.on('guildMemberRemove', async member => {
     .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
     .addFields(
       { name: "User", value: `${member.user.tag} (<@${member.id}>)`, inline: false },
-      { name: "Joined At", value: joinTime, inline: true },
       { name: "Left At", value: leaveTime, inline: true },
-      { name: "Reason", value: reasonText, inline: false }
+      { name: "Reason", value: leaveReason, inline: true }
     )
     .setFooter({ text: `User ID: ${member.id}` })
     .setTimestamp();
 
-  if (channels.leave) {
-    channels.leave.send({ embeds: [embed] });
-  }
+  if (channels.leave) channels.leave.send({ embeds: [embed] });
 });
-
+// Login
 client.login(config.token);
