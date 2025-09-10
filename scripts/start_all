@@ -11,8 +11,8 @@
 
 # List of alt account names (match your .service files)
 declare -a accounts=(
-  "abyss_alt1" "abyss_alt2" "abyss_alt3" "abyss_alt4" "abyss_alt5" "shunsy" "sassydoll" "kwishee" "barth" "carloyan" "pizzaking106" "pr0k1d11" "cash_master" "king_eazy87" "lazy07" "cracked"
-  # "_theorangejuice_" "rafiman" "hybrol" 
+  "abyss_alt1" "abyss_alt2" "abyss_alt3" "abyss_alt4" "abyss_alt5" "shunsy" "sassydoll" "kwishee" "barth" "carloyan" "pizzaking106" "pr0k1d11" "cash_master" "king_eazy87" "cracked"
+  # "_theorangejuice_" "rafiman" "hybrol" "lazy07"
   #"icedcoffeelol" 
 )
 
