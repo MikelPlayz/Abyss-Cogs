@@ -1,16 +1,23 @@
-from redbot.core import commands
+from __future__ import annotations
+
 import asyncio
+from typing import Tuple
+
+from redbot.core import commands
+from discord.ext.commands import has_role
 
 SCRIPT_PATH = "/home/ubuntu/zenith-all.sh"
+ALLOWED_ROLE_ID = 866073594668384300
+
 
 class ZenithCtl(commands.Cog):
-    """Control ZenithProxy instances using the zenith-all.sh script."""
+    """Control ZenithProxy instances using a local bash script."""
 
     def __init__(self, bot):
         self.bot = bot
-        self._lock = asyncio.Lock()  # prevent start/stop spam collisions
+        self._lock = asyncio.Lock()  # prevent overlapping start/stop/restart
 
-    async def _run(self, action: str) -> tuple[int, str, str]:
+    async def _run(self, action: str) -> Tuple[int, str, str]:
         """
         Runs: sudo /home/ubuntu/zenith-all.sh <action>
         Returns: (returncode, stdout, stderr)
@@ -27,16 +34,16 @@ class ZenithCtl(commands.Cog):
         err = err_b.decode("utf-8", errors="replace").strip()
         return proc.returncode, out, err
 
-    def _chunk(self, text: str, limit: int = 1800):
-        # Discord messages have limits; keep it safe
+    @staticmethod
+    def _chunk(text: str, limit: int = 1800):
         text = text or ""
         for i in range(0, len(text), limit):
-            yield text[i:i + limit]
+            yield text[i : i + limit]
 
     @commands.group(name="zenith")
-    @commands.is_owner()
+    @has_role(ALLOWED_ROLE_ID)
     async def zenith(self, ctx: commands.Context):
-        """ZenithProxy control group (owner-only)."""
+        """ZenithProxy control commands (role restricted)."""
         if ctx.invoked_subcommand is None:
             await ctx.send("Use: `zenith start|stop|restart|status`")
 
@@ -114,3 +121,14 @@ class ZenithCtl(commands.Cog):
                 await ctx.send(f"```{part}```")
         else:
             await ctx.send("No output from status.")
+
+    @zenith.error
+    async def zenith_error(self, ctx: commands.Context, error: Exception):
+        if isinstance(error, commands.MissingRole):
+            await ctx.send("❌ You do not have permission to control ZenithProxy instances.")
+        else:
+            raise error
+
+
+async def setup(bot):
+    await bot.add_cog(ZenithCtl(bot))
