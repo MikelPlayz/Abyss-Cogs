@@ -1,6 +1,0 @@
-[2026-03-31 02:44:32 +0000] [414626] [INFO] Starting gunicorn 25.3.0
-[2026-03-31 02:44:32 +0000] [414626] [INFO] Listening at: http://0.0.0.0:3030 (414626)
-[2026-03-31 02:44:32 +0000] [414626] [INFO] Using worker: sync
-[2026-03-31 02:44:32 +0000] [414627] [INFO] Booting worker with pid: 414627
-[2026-03-31 02:44:32 +0000] [414628] [INFO] Booting worker with pid: 414628
-[2026-03-31 02:44:32 +0000] [414626] [INFO] Control socket listening at /home/adminpanel/.gunicorn/gunicorn.ctl
