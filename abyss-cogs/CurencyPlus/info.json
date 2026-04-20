@@ -1,0 +1,11 @@
+{
+  "author": ["MikelPlayz"],
+  "name": "CurrencyPlus",
+  "short": "Two-currency system (Gold/Credit) with Google Sheets logging + import tools. Made for Abyss.",
+  "description": "Tracks Gold/Credit balances, role-gated modifications, logs transactions to Google Sheets, supports importing from an existing sheet or CSV.",
+  "install_msg": "Thanks for installing CurrencyPlus. Run /currencyset role, /currencyset creds, /currencyset gsheet, then use /currencyimport to migrate.",
+  "requirements": ["gspread", "google-auth"],
+  "tags": ["economy", "currency", "google-sheets", "logging"],
+  "min_bot_version": "3.5.0",
+  "hidden": false
+}
