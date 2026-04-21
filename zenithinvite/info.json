@@ -1,0 +1,13 @@
+{
+  "name": "ZenithInvite",
+  "short": "Invite request panel for Zenith integrations.",
+  "description": "Posts a button panel, collects a player's IGN in a modal, and sends a configurable command using {ign}, including cross-server relay support.",
+  "author": ["MikelPlayz"],
+  "required_cogs": {},
+  "requirements": [],
+  "tags": ["zenith", "invite", "integration", "modal", "button", "cross-server"],
+  "min_bot_version": "3.5.0",
+  "hidden": false,
+  "disabled": false,
+  "end_user_data_statement": "This cog stores guild configuration and panel message metadata only."
+}
