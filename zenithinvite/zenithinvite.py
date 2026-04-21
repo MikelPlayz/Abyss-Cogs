@@ -19,7 +19,7 @@ class InviteIGNModal(discord.ui.Modal):
 
         self.ign = discord.ui.TextInput(
             label="In-Game Name",
-            placeholder="Enter your in-game username",
+            placeholder="Enter your in-game username. If you're on bedrock, Be sure to add your username exactly how the server has it.",
             required=True,
             min_length=1,
             max_length=64,
@@ -141,7 +141,7 @@ class InviteIGNModal(discord.ui.Modal):
         try:
             reply = success_message.format(ign=ign)
         except Exception:
-            reply = f"Your request has been submitted for `{ign}`."
+            reply = f"Your invite has been sent to `{ign}`."
 
         await interaction.response.send_message(reply, ephemeral=True)
 
@@ -196,8 +196,8 @@ class ZenithInvite(commands.Cog):
             "embed_color": 0xFF0000,
             "button_label": "Request Invite",
             "success_message": (
-                "Your request has been submitted for `{ign}`. "
-                "If the integration is working, it should process shortly."
+                "Your invite has been sent to `{ign}`."
+                "You need to be online to accept the invite."
             ),
             "validation_enabled": True,
             "ign_regex": DEFAULT_IGN_REGEX,
