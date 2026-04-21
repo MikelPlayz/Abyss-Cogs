@@ -19,7 +19,7 @@ class InviteIGNModal(discord.ui.Modal):
 
         self.ign = discord.ui.TextInput(
             label="In-Game Name",
-            placeholder="Enter your in-game username. If you're on bedrock, Be sure to add your username exactly how the server has it.",
+            placeholder="Enter your in-game username.",
             required=True,
             min_length=1,
             max_length=64,
@@ -189,9 +189,10 @@ class ZenithInvite(commands.Cog):
             "command_channel_id": None,
             "panel_message_id": None,
             "command_template": "invite {ign}",
-            "embed_title": "Server Invite Request",
+            "embed_title": "Team Invite Request",
             "embed_description": (
                 "Press the button below and enter your in-game name to request an invite."
+                "If you're on bedrock, Be sure to add your username exactly how the server has it."
             ),
             "embed_color": 0xFF0000,
             "button_label": "Request Invite",
