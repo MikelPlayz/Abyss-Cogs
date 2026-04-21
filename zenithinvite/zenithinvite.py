@@ -8,7 +8,7 @@ from redbot.core import commands, Config
 from redbot.core.bot import Red
 
 
-IGN_REGEX = re.compile(r"^[A-Za-z0-9_]{1,16}$")
+DEFAULT_IGN_REGEX = r"^[A-Za-z0-9_]{1,16}$"
 
 
 class InviteIGNModal(discord.ui.Modal):
@@ -19,10 +19,10 @@ class InviteIGNModal(discord.ui.Modal):
 
         self.ign = discord.ui.TextInput(
             label="In-Game Name",
-            placeholder="Enter your Minecraft username",
+            placeholder="Enter your in-game username",
             required=True,
             min_length=1,
-            max_length=16,
+            max_length=64,
         )
         self.add_item(self.ign)
 
@@ -37,15 +37,36 @@ class InviteIGNModal(discord.ui.Modal):
 
         ign = str(self.ign.value).strip()
 
-        if not IGN_REGEX.fullmatch(ign):
+        guild_conf = self.cog.config.guild(guild)
+        validation_enabled = await guild_conf.validation_enabled()
+        ign_regex = await guild_conf.ign_regex()
+        ign_max_length = await guild_conf.ign_max_length()
+
+        if len(ign) > ign_max_length:
             await interaction.response.send_message(
-                "That does not look like a valid Minecraft IGN. "
-                "Use only letters, numbers, and underscores, up to 16 characters.",
+                f"That username is too long. Maximum length is `{ign_max_length}` characters.",
                 ephemeral=True,
             )
             return
 
-        guild_conf = self.cog.config.guild(guild)
+        if validation_enabled:
+            try:
+                compiled = re.compile(ign_regex)
+            except re.error:
+                await interaction.response.send_message(
+                    "The configured IGN validation regex is invalid. "
+                    "Please contact an admin.",
+                    ephemeral=True,
+                )
+                return
+
+            if not compiled.fullmatch(ign):
+                await interaction.response.send_message(
+                    "That username does not match the allowed format for this server.",
+                    ephemeral=True,
+                )
+                return
+
         command_channel_id = await guild_conf.command_channel_id()
         command_template = await guild_conf.command_template()
         success_message = await guild_conf.success_message()
@@ -178,6 +199,9 @@ class ZenithInvite(commands.Cog):
                 "Your request has been submitted for `{ign}`. "
                 "If the integration is working, it should process shortly."
             ),
+            "validation_enabled": True,
+            "ign_regex": DEFAULT_IGN_REGEX,
+            "ign_max_length": 64,
         }
 
         self.config.register_guild(**default_guild)
@@ -253,11 +277,7 @@ class ZenithInvite(commands.Cog):
         ctx: commands.Context,
         channel_id: int,
     ) -> None:
-        """
-        Set the channel where the rendered command will be sent.
-
-        This supports channels in other servers, as long as the bot is in that server.
-        """
+        """Set the cross-server command destination channel by ID."""
         channel = await self._resolve_text_channel(channel_id)
         if not isinstance(channel, discord.TextChannel):
             await ctx.send("I could not find a text channel with that ID.")
@@ -288,24 +308,7 @@ class ZenithInvite(commands.Cog):
         *,
         template: str,
     ) -> None:
-        """
-        Set the command template.
-
-        Available placeholders:
-        {ign}
-        {user_id}
-        {user_name}
-        {user_mention}
-        {guild_id}
-        {guild_name}
-        {source_guild_id}
-        {source_guild_name}
-        {source_channel_id}
-        {source_channel_name}
-
-        Example:
-        `[p]zenithinvite setcommand whitelist add {ign}`
-        """
+        """Set the command template. Must include {ign}."""
         if "{ign}" not in template:
             await ctx.send("The command template must include `{ign}`.")
             return
@@ -313,21 +316,52 @@ class ZenithInvite(commands.Cog):
         await self.config.guild(ctx.guild).command_template.set(template)
         await ctx.send(f"Command template set to:\n`{template}`")
 
+    @zenithinvite_group.command(name="setvalidation")
+    async def set_validation(self, ctx: commands.Context, enabled: bool) -> None:
+        """Enable or disable IGN validation entirely."""
+        await self.config.guild(ctx.guild).validation_enabled.set(enabled)
+        await ctx.send(f"IGN validation set to `{enabled}`")
+
+    @zenithinvite_group.command(name="setignregex")
+    async def set_ign_regex(self, ctx: commands.Context, *, pattern: str) -> None:
+        """Set the regex used for username validation."""
+        try:
+            re.compile(pattern)
+        except re.error as e:
+            await ctx.send(f"That regex is invalid: `{e}`")
+            return
+
+        await self.config.guild(ctx.guild).ign_regex.set(pattern)
+        await ctx.send(f"IGN regex updated to:\n`{pattern}`")
+
+    @zenithinvite_group.command(name="resetignregex")
+    async def reset_ign_regex(self, ctx: commands.Context) -> None:
+        """Reset the IGN regex to the default Java-safe pattern."""
+        await self.config.guild(ctx.guild).ign_regex.set(DEFAULT_IGN_REGEX)
+        await ctx.send(f"IGN regex reset to default:\n`{DEFAULT_IGN_REGEX}`")
+
+    @zenithinvite_group.command(name="setmaxlength")
+    async def set_max_length(self, ctx: commands.Context, length: int) -> None:
+        """Set the max allowed username length."""
+        if length < 1 or length > 128:
+            await ctx.send("Max length must be between 1 and 128.")
+            return
+
+        await self.config.guild(ctx.guild).ign_max_length.set(length)
+        await ctx.send(f"IGN max length set to `{length}`")
+
     @zenithinvite_group.command(name="settitle")
     async def set_title(self, ctx: commands.Context, *, title: str) -> None:
-        """Set the panel embed title."""
         await self.config.guild(ctx.guild).embed_title.set(title)
         await ctx.send("Embed title updated.")
 
     @zenithinvite_group.command(name="setdescription")
     async def set_description(self, ctx: commands.Context, *, description: str) -> None:
-        """Set the panel embed description."""
         await self.config.guild(ctx.guild).embed_description.set(description)
         await ctx.send("Embed description updated.")
 
     @zenithinvite_group.command(name="setbutton")
     async def set_button_label(self, ctx: commands.Context, *, label: str) -> None:
-        """Set the button label."""
         label = label.strip()
         if not label:
             await ctx.send("Button label cannot be empty.")
@@ -342,23 +376,11 @@ class ZenithInvite(commands.Cog):
 
     @zenithinvite_group.command(name="setsuccess")
     async def set_success_message(self, ctx: commands.Context, *, message: str) -> None:
-        """
-        Set the success message shown after submission.
-
-        Supports:
-        {ign}
-        """
         await self.config.guild(ctx.guild).success_message.set(message)
         await ctx.send("Success message updated.")
 
     @zenithinvite_group.command(name="setcolor")
     async def set_color(self, ctx: commands.Context, color: str) -> None:
-        """
-        Set the embed color.
-
-        Example:
-        `[p]zenithinvite setcolor #ff0000`
-        """
         cleaned = color.strip().replace("#", "")
         try:
             value = int(cleaned, 16)
@@ -371,7 +393,6 @@ class ZenithInvite(commands.Cog):
 
     @zenithinvite_group.command(name="post")
     async def post_panel(self, ctx: commands.Context) -> None:
-        """Post the invite panel."""
         guild_conf = self.config.guild(ctx.guild)
 
         panel_channel_id = await guild_conf.panel_channel_id()
@@ -406,7 +427,6 @@ class ZenithInvite(commands.Cog):
 
     @zenithinvite_group.command(name="refresh")
     async def refresh_panel(self, ctx: commands.Context) -> None:
-        """Edit the last posted panel message with current settings."""
         guild_conf = self.config.guild(ctx.guild)
 
         panel_channel_id = await guild_conf.panel_channel_id()
@@ -453,7 +473,6 @@ class ZenithInvite(commands.Cog):
 
     @zenithinvite_group.command(name="settings")
     async def settings(self, ctx: commands.Context) -> None:
-        """Show current settings."""
         guild_conf = self.config.guild(ctx.guild)
 
         panel_channel_id = await guild_conf.panel_channel_id()
@@ -465,6 +484,9 @@ class ZenithInvite(commands.Cog):
         color = await guild_conf.embed_color()
         button_label = await guild_conf.button_label()
         success_message = await guild_conf.success_message()
+        validation_enabled = await guild_conf.validation_enabled()
+        ign_regex = await guild_conf.ign_regex()
+        ign_max_length = await guild_conf.ign_max_length()
 
         panel_channel = ctx.guild.get_channel(panel_channel_id) if panel_channel_id else None
 
@@ -473,6 +495,9 @@ class ZenithInvite(commands.Cog):
             f"**Command channel:** {self._format_channel_ref(command_channel_id)}\n"
             f"**Panel message ID:** `{panel_message_id or 'Not set'}`\n"
             f"**Command template:** `{command_template}`\n"
+            f"**Validation enabled:** `{validation_enabled}`\n"
+            f"**IGN regex:** `{ign_regex}`\n"
+            f"**IGN max length:** `{ign_max_length}`\n"
             f"**Embed title:** {title}\n"
             f"**Embed description:** {description}\n"
             f"**Button label:** `{button_label}`\n"
@@ -482,16 +507,7 @@ class ZenithInvite(commands.Cog):
         await ctx.send(msg)
 
     @zenithinvite_group.command(name="testcommand")
-    async def test_command(
-        self,
-        ctx: commands.Context,
-        ign: str,
-    ) -> None:
-        """Preview the rendered command for a given IGN."""
-        if not IGN_REGEX.fullmatch(ign):
-            await ctx.send("That does not look like a valid Minecraft IGN.")
-            return
-
+    async def test_command(self, ctx: commands.Context, ign: str) -> None:
         command_template = await self.config.guild(ctx.guild).command_template()
 
         try:
