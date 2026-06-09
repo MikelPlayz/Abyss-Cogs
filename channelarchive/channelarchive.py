@@ -23,40 +23,34 @@ class ChannelArchive(commands.Cog):
             channel_id=None,
         )
 
-    async def cog_load(self):
-        self.bot.tree.add_command(self.archive_set_channel)
-        self.bot.tree.add_command(self.archive_channel)
-
-    async def cog_unload(self):
-        self.bot.tree.remove_command("archive_set_channel", type=discord.AppCommandType.chat_input)
-        self.bot.tree.remove_command("archive_channel", type=discord.AppCommandType.chat_input)
-
-    async def _owner_only(self, interaction: discord.Interaction) -> bool:
+    async def owner_only_check(self, interaction: discord.Interaction) -> bool:
         if await self.bot.is_owner(interaction.user):
             return True
 
-        await interaction.response.send_message(
-            "Only the bot owner can use this command.",
-            ephemeral=True,
-        )
+        if not interaction.response.is_done():
+            await interaction.response.send_message(
+                "Only the bot owner can use this command.",
+                ephemeral=True,
+            )
+
         return False
 
     @app_commands.command(
         name="archive_set_channel",
-        description="Set the channel where HTML archives will be sent.",
+        description="Set the channel where HTML archives are sent.",
     )
     async def archive_set_channel(
         self,
         interaction: discord.Interaction,
         channel: discord.TextChannel,
     ):
-        if not await self._owner_only(interaction):
+        if not await self.owner_only_check(interaction):
             return
 
         await self.config.guild(interaction.guild).channel_id.set(channel.id)
 
         await interaction.response.send_message(
-            f"Archive output channel set to {channel.mention}.",
+            f"Archive output channel set to {channel.mention}",
             ephemeral=True,
         )
 
@@ -64,54 +58,73 @@ class ChannelArchive(commands.Cog):
         name="archive_channel",
         description="Archive this channel into an HTML transcript.",
     )
+    @app_commands.describe(
+        max_messages="Maximum amount of messages to archive"
+    )
     async def archive_channel(
         self,
         interaction: discord.Interaction,
         max_messages: int | None = None,
     ):
-        if not await self._owner_only(interaction):
+        if not await self.owner_only_check(interaction):
             return
 
-        await interaction.response.defer(ephemeral=True, thinking=True)
+        await interaction.response.defer(
+            ephemeral=True,
+            thinking=True,
+        )
 
         guild = interaction.guild
         source_channel = interaction.channel
 
-        output_id = await self.config.guild(guild).channel_id()
-        if not output_id:
+        if not isinstance(source_channel, discord.TextChannel):
             await interaction.followup.send(
-                "No archive output channel is configured. Use `/archive_set_channel` first.",
+                "This command can only be used in text channels.",
                 ephemeral=True,
             )
             return
 
-        output_channel = guild.get_channel(output_id)
-        if not output_channel:
+        output_channel_id = await self.config.guild(guild).channel_id()
+
+        if output_channel_id is None:
             await interaction.followup.send(
-                "The configured archive output channel no longer exists.",
+                "No archive channel configured. Use `/archive_set_channel` first.",
+                ephemeral=True,
+            )
+            return
+
+        output_channel = guild.get_channel(output_channel_id)
+
+        if output_channel is None:
+            await interaction.followup.send(
+                "Configured archive channel no longer exists.",
                 ephemeral=True,
             )
             return
 
         messages = []
 
-        async for msg in source_channel.history(
+        async for message in source_channel.history(
             limit=max_messages,
             oldest_first=True,
             before=interaction.created_at,
         ):
-            messages.append(msg)
+            messages.append(message)
 
-        html_text = self._build_html(
+        html_output = self.build_html(
             guild=guild,
             channel=source_channel,
             messages=messages,
         )
 
-        filename = f"archive-{source_channel.name}-{source_channel.id}.html"
+        filename = (
+            f"archive-"
+            f"{source_channel.name}-"
+            f"{source_channel.id}.html"
+        )
 
         file = discord.File(
-            io.BytesIO(html_text.encode("utf-8")),
+            io.BytesIO(html_output.encode("utf-8")),
             filename=filename,
         )
 
@@ -122,89 +135,115 @@ class ChannelArchive(commands.Cog):
         )
 
         await interaction.followup.send(
-            f"Archived `{source_channel}` with `{len(messages)}` messages.",
+            f"Archived {len(messages)} messages from {source_channel.mention}",
             ephemeral=True,
         )
 
-    def _build_html(self, guild, channel, messages):
+    def build_html(self, guild, channel, messages):
         rows = []
 
-        for msg in messages:
-            created = msg.created_at.astimezone(timezone.utc).strftime(
-                "%Y-%m-%d %H:%M:%S UTC"
-            )
+        for message in messages:
+            timestamp = message.created_at.astimezone(
+                timezone.utc
+            ).strftime("%Y-%m-%d %H:%M:%S UTC")
 
-            author = html.escape(str(msg.author))
-            avatar = msg.author.display_avatar.url
+            author_name = html.escape(str(message.author))
+            avatar_url = message.author.display_avatar.url
 
-            content = html.escape(msg.clean_content or "").replace("\n", "<br>")
+            content = html.escape(
+                message.clean_content or ""
+            ).replace("\n", "<br>")
 
-            attachments = ""
-            if msg.attachments:
-                links = []
-                for attachment in msg.attachments:
-                    links.append(
-                        f'<a href="{html.escape(attachment.url)}" target="_blank">'
+            attachment_html = ""
+
+            if message.attachments:
+                attachment_links = []
+
+                for attachment in message.attachments:
+                    attachment_links.append(
+                        f'<a href="{html.escape(attachment.url)}" '
+                        f'target="_blank">'
                         f'{html.escape(attachment.filename)}</a>'
                     )
 
-                attachments = (
-                    "<div class='attachments'>Attachments: "
-                    + ", ".join(links)
+                attachment_html = (
+                    "<div class='attachments'>"
+                    "Attachments: "
+                    + ", ".join(attachment_links)
                     + "</div>"
                 )
 
-            embeds = ""
-            if msg.embeds:
-                embeds = f"<div class='embeds'>{len(msg.embeds)} embed(s)</div>"
+            embed_html = ""
+
+            if message.embeds:
+                embed_html = (
+                    f"<div class='embeds'>"
+                    f"{len(message.embeds)} embed(s)"
+                    f"</div>"
+                )
 
             rows.append(
                 f"""
-                <div class="message">
-                    <img class="avatar" src="{avatar}">
-                    <div class="body">
-                        <div>
-                            <span class="author">{author}</span>
-                            <span class="time">{created}</span>
-                        </div>
-                        <div class="content">{content}</div>
-                        {attachments}
-                        {embeds}
-                    </div>
-                </div>
-                """
+<div class="message">
+    <img class="avatar" src="{avatar_url}">
+    <div class="body">
+        <div class="meta">
+            <span class="author">{author_name}</span>
+            <span class="time">{timestamp}</span>
+        </div>
+
+        <div class="content">
+            {content}
+        </div>
+
+        {attachment_html}
+        {embed_html}
+    </div>
+</div>
+"""
             )
 
         return f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
-<title>Archive - {html.escape(str(channel))}</title>
+
+<title>
+Archive - {html.escape(channel.name)}
+</title>
+
 <style>
 body {{
-    background: #313338;
+    background-color: #313338;
     color: #dbdee1;
     font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 24px;
+    padding: 20px;
 }}
 
 .header {{
     border-bottom: 1px solid #4e5058;
-    margin-bottom: 24px;
-    padding-bottom: 16px;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
 }}
 
 .message {{
     display: flex;
     gap: 12px;
-    padding: 8px 0;
+    padding: 10px 0;
 }}
 
 .avatar {{
     width: 40px;
     height: 40px;
     border-radius: 50%;
+}}
+
+.body {{
+    flex: 1;
+}}
+
+.meta {{
+    margin-bottom: 4px;
 }}
 
 .author {{
@@ -219,12 +258,17 @@ body {{
 }}
 
 .content {{
-    margin-top: 4px;
+    margin-top: 3px;
+    white-space: normal;
 }}
 
-.attachments,
+.attachments {{
+    margin-top: 8px;
+    font-size: 14px;
+}}
+
 .embeds {{
-    margin-top: 6px;
+    margin-top: 8px;
     color: #b5bac1;
     font-size: 14px;
 }}
@@ -234,11 +278,17 @@ a {{
 }}
 </style>
 </head>
+
 <body>
+
 <div class="header">
     <h1>{html.escape(guild.name)}</h1>
-    <h2>#{html.escape(str(channel))}</h2>
-    <p>{len(messages)} messages archived.</p>
+
+    <h2>#{html.escape(channel.name)}</h2>
+
+    <p>
+        {len(messages)} messages archived.
+    </p>
 </div>
 
 {''.join(rows)}
