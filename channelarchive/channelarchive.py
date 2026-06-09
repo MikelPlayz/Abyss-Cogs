@@ -12,8 +12,24 @@ class ChannelArchive(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.config = Config.get_conf(self, identifier=982734982734, force_registration=True)
-        self.config.guild(channel_id=None)
+
+        self.config = Config.get_conf(
+            self,
+            identifier=982734982734,
+            force_registration=True,
+        )
+
+        self.config.register_guild(
+            channel_id=None,
+        )
+
+    async def cog_load(self):
+        self.bot.tree.add_command(self.archive_set_channel)
+        self.bot.tree.add_command(self.archive_channel)
+
+    async def cog_unload(self):
+        self.bot.tree.remove_command("archive_set_channel", type=discord.AppCommandType.chat_input)
+        self.bot.tree.remove_command("archive_channel", type=discord.AppCommandType.chat_input)
 
     async def _owner_only(self, interaction: discord.Interaction) -> bool:
         if await self.bot.is_owner(interaction.user):
@@ -78,6 +94,7 @@ class ChannelArchive(commands.Cog):
             return
 
         messages = []
+
         async for msg in source_channel.history(
             limit=max_messages,
             oldest_first=True,
@@ -91,7 +108,8 @@ class ChannelArchive(commands.Cog):
             messages=messages,
         )
 
-        filename = f"archive-{source_channel.id}.html"
+        filename = f"archive-{source_channel.name}-{source_channel.id}.html"
+
         file = discord.File(
             io.BytesIO(html_text.encode("utf-8")),
             filename=filename,
@@ -112,39 +130,50 @@ class ChannelArchive(commands.Cog):
         rows = []
 
         for msg in messages:
-            created = msg.created_at.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+            created = msg.created_at.astimezone(timezone.utc).strftime(
+                "%Y-%m-%d %H:%M:%S UTC"
+            )
+
             author = html.escape(str(msg.author))
             avatar = msg.author.display_avatar.url
-            content = html.escape(msg.clean_content).replace("\n", "<br>")
+
+            content = html.escape(msg.clean_content or "").replace("\n", "<br>")
 
             attachments = ""
             if msg.attachments:
                 links = []
-                for a in msg.attachments:
+                for attachment in msg.attachments:
                     links.append(
-                        f'<a href="{html.escape(a.url)}" target="_blank">'
-                        f'{html.escape(a.filename)}</a>'
+                        f'<a href="{html.escape(attachment.url)}" target="_blank">'
+                        f'{html.escape(attachment.filename)}</a>'
                     )
-                attachments = "<div class='attachments'>Attachments: " + ", ".join(links) + "</div>"
+
+                attachments = (
+                    "<div class='attachments'>Attachments: "
+                    + ", ".join(links)
+                    + "</div>"
+                )
 
             embeds = ""
             if msg.embeds:
                 embeds = f"<div class='embeds'>{len(msg.embeds)} embed(s)</div>"
 
-            rows.append(f"""
-            <div class="message">
-                <img class="avatar" src="{avatar}">
-                <div class="body">
-                    <div>
-                        <span class="author">{author}</span>
-                        <span class="time">{created}</span>
+            rows.append(
+                f"""
+                <div class="message">
+                    <img class="avatar" src="{avatar}">
+                    <div class="body">
+                        <div>
+                            <span class="author">{author}</span>
+                            <span class="time">{created}</span>
+                        </div>
+                        <div class="content">{content}</div>
+                        {attachments}
+                        {embeds}
                     </div>
-                    <div class="content">{content}</div>
-                    {attachments}
-                    {embeds}
                 </div>
-            </div>
-            """)
+                """
+            )
 
         return f"""<!DOCTYPE html>
 <html>
@@ -159,42 +188,47 @@ body {{
     margin: 0;
     padding: 24px;
 }}
-h1, h2 {{
-    margin: 0 0 8px 0;
-}}
+
 .header {{
     border-bottom: 1px solid #4e5058;
     margin-bottom: 24px;
     padding-bottom: 16px;
 }}
+
 .message {{
     display: flex;
     gap: 12px;
     padding: 8px 0;
 }}
+
 .avatar {{
     width: 40px;
     height: 40px;
     border-radius: 50%;
 }}
+
 .author {{
     font-weight: bold;
     color: #ffffff;
 }}
+
 .time {{
     color: #949ba4;
     font-size: 12px;
     margin-left: 8px;
 }}
+
 .content {{
     margin-top: 4px;
-    white-space: normal;
 }}
-.attachments, .embeds {{
+
+.attachments,
+.embeds {{
     margin-top: 6px;
     color: #b5bac1;
     font-size: 14px;
 }}
+
 a {{
     color: #00a8fc;
 }}
@@ -206,7 +240,9 @@ a {{
     <h2>#{html.escape(str(channel))}</h2>
     <p>{len(messages)} messages archived.</p>
 </div>
+
 {''.join(rows)}
+
 </body>
 </html>
 """
